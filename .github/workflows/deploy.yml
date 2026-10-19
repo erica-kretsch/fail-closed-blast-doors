@@ -1,0 +1,68 @@
+name: Build and Release Mod
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: RageAgainstThePixel/setup-steamcmd@v1
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
+
+      # The dedicated server is free to download anonymously and ships the same game DLLs.
+      - name: Download game DLLs
+        run: |
+          for i in {1..8}; do
+            steamcmd +login anonymous +sDepotDownloadFileFilter "*.dll" +app_update 600760 validate +quit && break
+            echo "SteamCMD failed, retry #$i"
+            sleep 10
+          done
+
+      - uses: actions/checkout@v4
+
+      - name: Check the tag matches About.xml
+        if: github.ref_type == 'tag'
+        run: |
+          ABOUT_VERSION=$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' About/About.xml | head -n 1)
+          if [ "v$ABOUT_VERSION" != "$GITHUB_REF_NAME" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match About.xml version $ABOUT_VERSION"
+            exit 1
+          fi
+
+      - name: Build
+        run: |
+          export STATIONEERS_DLL_DIR="$STEAM_DIR/steamapps/common/Stationeers Dedicated Server/rocketstation_DedicatedServer_Data/Managed"
+          dotnet build --configuration Release Main.csproj
+
+      - name: Package DLL and About folder
+        if: github.ref_type == 'tag'
+        id: package_zip
+        run: |
+          set -euo pipefail
+          NAME=FailClosedBlastDoors
+          ZIP_NAME="$NAME-$GITHUB_REF_NAME.zip"
+          mkdir -p "dist/$NAME"
+          cp "bin/Release/net48/$NAME.dll" "dist/$NAME/"
+          cp -r About "dist/$NAME/"
+          (cd dist && zip -r "$ZIP_NAME" "$NAME")
+          echo "zip_path=dist/$ZIP_NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release
+        if: github.ref_type == 'tag'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          files: ${{ steps.package_zip.outputs.zip_path }}

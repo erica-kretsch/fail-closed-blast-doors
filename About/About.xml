@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ModMetadata xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <Name>Fail-Closed Blast Doors</Name>
+  <Author>erica-kretsch</Author>
+  <ModID>fail-closed-blast-doors</ModID>
+  <Version>0.1.0</Version>
+  <!-- Steam description using steam styling tags for Steam workshop page -->
+  <Description>[h1]Fail-Closed Blast Doors[/h1]
+
+A blast door is for containment, not traffic. With this mod it closes by itself when it loses power, using a hydraulic accumulator that opening the door charges.
+
+[h2]How it works[/h2]
+[list]
+[*]A powered blast door takes 10 seconds to open. As it opens it compresses its accumulator, so a fully open door is armed. Closing is as fast as vanilla.
+[*]If the door loses power while it holds enough stored energy to travel back to closed, it closes. A partly open door still has enough.
+[*]A door opened by crowbar while unpowered opens at vanilla speed, but that diverts the hydraulics: it stays open on power loss and has to recharge once power returns.
+[*]An open door that has not recharged refuses a close command: its [b]Error[/b] logic value goes to 1 and its [b]Setting[/b] reads 0. When the accumulator can cover the distance, the door closes.
+[*]While an open door recharges, its status light shows a different colour.
+[/list]
+
+Only the Blast Door is changed. Airlocks, hangar doors and every other door behave as before.
+
+[h2]For modders[/h2]
+Other mods can register their own blast door prefabs, and read whether a door is opening, recharging, closing or in standby, through a small static API.
+
+This is a [b]StationeersLaunchPad[/b] plugin mod. It requires BepInEx. See: https://github.com/StationeersLaunchPad/StationeersLaunchPad
+  </Description>
+  <!-- Ingame Description using TMP tags for Workshop menu -->
+  <InGameDescription>
+    <![CDATA[<size="30"><color=#ffa500> Fail-Closed Blast Doors </color></size>
+Blast doors close when they lose power. Opening takes 10 seconds and charges a hydraulic accumulator.
+
+Requires BepInEx and StationeersLaunchPad.
+]]>
+  </InGameDescription>
+  <ChangeLog>
+    [h3]Version 0.1.0:[/h3]
+    [list]
+    [*]First version.
+    [/list]
+  </ChangeLog>
+  <!-- Set by LaunchPad on first publish; keeps later publishes updating the same Workshop item. -->
+  <WorkshopHandle>0</WorkshopHandle>
+  <Tags>
+    <Tag>Quality of Life</Tag>
+    <Tag>BepInEx</Tag>
+    <Tag>StationeersLaunchPad</Tag>
+  </Tags>
+  <Dependencies />
+  <LoadBefore />
+  <LoadAfter />
+</ModMetadata>
