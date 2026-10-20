@@ -55,7 +55,7 @@ Requires BepInEx and StationeersLaunchPad.
     [/list]
     </ChangeLog>
   <!-- Set by LaunchPad on first publish; keeps later publishes updating the same Workshop item. -->
-  <WorkshopHandle>0</WorkshopHandle>
+  <WorkshopHandle>3823338932</WorkshopHandle>
   <Tags>
     <Tag>Quality of Life</Tag>
     <Tag>BepInEx</Tag>
