@@ -3,6 +3,9 @@
 A [StationeersLaunchPad](https://github.com/StationeersLaunchPad/StationeersLaunchPad) plugin
 mod. A blast door closes by itself when it loses power, using a hydraulic accumulator that
 opening the door charges. A blast door is for containment, not traffic: it opens slowly.
+Install it from the
+[Steam Workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=3823338932) or from
+[GitHub releases](https://github.com/erica-kretsch/fail-closed-blast-doors/releases).
 
 <img src="About/Preview.png" alt="A blast door open and armed, losing power, then closed" width="640">
 
