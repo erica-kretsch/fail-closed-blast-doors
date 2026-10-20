@@ -3,7 +3,7 @@
   <Name>Fail-Closed Blast Doors</Name>
   <Author>erica-kretsch</Author>
   <ModID>fail-closed-blast-doors</ModID>
-  <Version>0.1.0</Version>
+  <Version>1.0.0</Version>
   <!-- Steam description using steam styling tags for Steam workshop page -->
   <Description>[h1]Fail-Closed Blast Doors[/h1]
 
@@ -34,11 +34,16 @@ Requires BepInEx and StationeersLaunchPad.
 ]]>
   </InGameDescription>
   <ChangeLog>
-    [h3]Version 0.1.0:[/h3]
+    [h3]Version 1.0.0:[/h3]
     [list]
-    [*]First version.
+    [*]Blast doors close when they lose power, if their hydraulic accumulator holds enough energy to travel back.
+    [*]A powered open takes 10 seconds and charges the accumulator; closing keeps the vanilla speed.
+    [*]A crowbar open skips the charge, so the door stays open on power loss until it recharges.
+    [*]A close the accumulator cannot cover waits: Error reads 1 and Setting reads 0 until it can run.
+    [*]An open door recharges when powered, with a status light colour, and keeps its charge across a save and reload.
+    [*]Other mods can register their own blast door prefabs and read each door's state.
     [/list]
-  </ChangeLog>
+    </ChangeLog>
   <!-- Set by LaunchPad on first publish; keeps later publishes updating the same Workshop item. -->
   <WorkshopHandle>0</WorkshopHandle>
   <Tags>

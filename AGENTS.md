@@ -62,11 +62,15 @@ Assisted-by: AGENT_NAME:MODEL_VERSION [TOOL1] [TOOL2]
   recharge and returns to 0 when the door starts to close; `Idle` stays 0 while it moves.
   An open door keeps its recharge state across a save and reload (through its stun), and the
   stun is not shown in any in-game label.
-- **Not verified in game yet.** What a client sees (the recharge colour and state from the
-  synced stun); the prefab's real `time`; whether the blast door has an error state
-  (`HasErrorState`), which decides whether `Error` comes from the game's setter or from our
-  logic patches; and what turns `Setting` into movement in the keypad's Logic mode, which
-  blast doors don't have.
+  A client of a dedicated server sees the same behaviour, including the recharge state from
+  the synced stun.
+- **The blast door has no error state.** `Prefab.Find("StructureBlastDoor").HasErrorState` is
+  false (checked in a debugger), so the game's `Thing.Error` setter does nothing on it and
+  `Error` is reported entirely by `ErrorCanReadPatch` and `ErrorGetValuePatch`.
+- **The vanilla open and close take 1 second** (`time` on the prefab's `DoorAnimComponent`,
+  read in a debugger), so the 10-second open is ten times slower.
+- **Not verified in game yet.** Only what turns `Setting` into movement in the keypad's
+  Logic mode, which blast doors don't have.
 - **CI.** `.github/workflows/deploy.yml` downloads the dedicated server's DLLs with
   steamcmd, builds against them, and on a `v*` tag attaches a zip of the DLL and `About/` to a
   GitHub release. The layout follows the modding Discord's pinned
