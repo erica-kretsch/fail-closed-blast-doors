@@ -22,6 +22,9 @@ A blast door is for containment, not traffic. With this mod it closes by itself 
 
 Only the Blast Door is changed. Airlocks, hangar doors and every other door behave as before.
 
+[h2]Multiplayer[/h2]
+Install it on the server and on every player. The host runs the accumulator, so a player without the mod still sees doors close on power loss, but sees them open at normal speed, out of step with the host.
+
 [h2]For modders[/h2]
 Other mods can register their own blast door prefabs, and read whether a door is opening, recharging, closing or in standby, through a small static API.
 
@@ -29,8 +32,13 @@ This is a [b]StationeersLaunchPad[/b] plugin mod. It requires BepInEx. See: http
   </Description>
   <!-- Ingame Description using TMP tags for Workshop menu -->
   <InGameDescription>
-    <![CDATA[<size="30"><color=#ffa500> Fail-Closed Blast Doors </color></size>
-Blast doors close when they lose power. Opening takes 10 seconds and charges a hydraulic accumulator.
+    <![CDATA[<size="26"><color=#ffa500>Blast doors close when they lose power.</color></size>
+
+A powered open takes 10 seconds and charges a hydraulic accumulator. A crowbar open skips the charge, so that door stays open on power loss until it recharges.
+
+A close the accumulator cannot cover waits: Error reads 1 and Setting reads 0.
+
+Only the Blast Door changes. Install on the server and on every player: a player without it sees the door open at normal speed, out of step with the host.
 
 Requires BepInEx and StationeersLaunchPad.
 ]]>

@@ -39,7 +39,9 @@ The accumulator holds stored energy `c` from 0 (empty) to 1 (full). A door open 
   damage state refuses stun, so a door without a stun-capable state is given one that only
   adds that permission; a state that already allows stun, from another mod or a later game
   version, is used as it is.
-- **Multiplayer.** The host runs the accumulator. Clients take the recharge state from the
+- **Multiplayer.** Install on the server and every player. A player without it would see doors
+  open at normal speed, out of step with the host (not tested; reasoned from the code).
+  The host runs the accumulator. Clients take the recharge state from the
   synced stun and animation, so they see the recharge colour and `BlastDoorApi` state too.
   `Error` and `Setting` reach them through the game's own sync.
 - **Saves.** An open door keeps its charge across a reload through its stun. A door saved

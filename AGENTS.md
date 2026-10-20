@@ -57,6 +57,11 @@ Assisted-by: AGENT_NAME:MODEL_VERSION [TOOL1] [TOOL2]
   runs the accumulator and clients share its timings. `OpenSeconds` is read through
   `Settings.OpenSecondsClamped`, never `.Value`, since 0 skips the animation and a negative
   number would run it backwards.
+- **A client without the mod is untested.** From the code: the host's close, logic gate,
+  `Setting` and `Error` still work, but the client plays the vanilla 1-second open against the
+  host's 10-second one, and its stock damage state may refuse the synced stun, so it would
+  not see the recharge colour. The Workshop text says to install on the server and every
+  player; test the host-only case before claiming more.
 - **Threads.** Power is computed off the main thread in places, so `BlastDoorApi` readers only
   read values the main-thread tick cached. Keep it that way.
 - **Checked in game (Erica).** The colliders follow the animation; a close during recharge
