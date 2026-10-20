@@ -4,6 +4,8 @@
   <Author>erica-kretsch</Author>
   <ModID>fail-closed-blast-doors</ModID>
   <Version>1.0.0</Version>
+  <!-- The host runs the accumulator and clients must share its timings, so both need it. -->
+  <ModSide>Both</ModSide>
   <!-- Steam description using steam styling tags for Steam workshop page -->
   <Description>[h1]Fail-Closed Blast Doors[/h1]
 

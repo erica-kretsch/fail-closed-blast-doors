@@ -46,7 +46,7 @@ namespace FailClosedBlastDoors.Patches
             {
                 return;
             }
-            __instance.time = opening && door.Powered ? Settings.OpenSeconds.Value : original.Value;
+            __instance.time = opening && door.Powered ? Settings.OpenSecondsClamped : original.Value;
         }
     }
 }

@@ -58,7 +58,7 @@ The accumulator holds stored energy `c` from 0 (empty) to 1 (full). A door open 
 
 | Setting | Default | |
 |---|---|---|
-| `OpenSeconds` | `10` | Powered open time and recharge time from empty. |
+| `OpenSeconds` | `10` | Powered open time and recharge time from empty, 0.5 to 120. |
 | `RechargeColor` | amber | Status light colour while recharging. |
 
 ## For modders

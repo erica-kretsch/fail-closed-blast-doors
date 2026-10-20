@@ -11,7 +11,16 @@ namespace FailClosedBlastDoors
 {
     internal static class Settings
     {
+        public const float MinOpenSeconds = 0.5f;
+        public const float MaxOpenSeconds = 120f;
+
         public static ConfigEntry<float> OpenSeconds;
+
+        // Read this, not OpenSeconds.Value: a hand-edited config file or a settings screen that
+        // ignores the declared range can still hold 0 (which skips the animation) or a
+        // negative number (which would run it backwards).
+        public static float OpenSecondsClamped =>
+            Mathf.Clamp(OpenSeconds.Value, MinOpenSeconds, MaxOpenSeconds);
         public static ConfigEntry<Color> RechargeColor;
     }
 
@@ -29,8 +38,10 @@ namespace FailClosedBlastDoors
             {
                 Settings.OpenSeconds = Config.Bind(
                     "Blast door", "OpenSeconds", 10f,
-                    "Seconds a powered blast door takes to open, and to recharge from empty. "
-                    + "Closing and opening by crowbar keep the vanilla speed.");
+                    new ConfigDescription(
+                        "Seconds a powered blast door takes to open, and to recharge from empty. "
+                        + "Closing and opening by crowbar keep the vanilla speed.",
+                        new AcceptableValueRange<float>(Settings.MinOpenSeconds, Settings.MaxOpenSeconds)));
                 Settings.RechargeColor = Config.Bind(
                     "Blast door", "RechargeColor", new Color(1f, 0.65f, 0f, 1f),
                     "Status light colour while an open door recharges its accumulator.");

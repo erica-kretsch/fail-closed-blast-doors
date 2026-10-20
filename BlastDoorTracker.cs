@@ -280,7 +280,7 @@ namespace FailClosedBlastDoors
             var motion = anim.CurrentState;
             if (powered && motion == BinaryAnimState.On && charge < 1f)
             {
-                charge = Mathf.Min(1f, charge + dt / Mathf.Max(0.01f, Settings.OpenSeconds.Value));
+                charge = Mathf.Min(1f, charge + dt / Settings.OpenSecondsClamped);
             }
             if (t <= 0f)
             {

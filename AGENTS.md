@@ -52,6 +52,11 @@ Assisted-by: AGENT_NAME:MODEL_VERSION [TOOL1] [TOOL2]
   `DamageAllowed(Stun)` is true. `StunAllowedDamageState` holds no logic: it only lifts
   `ThingDamageState`'s refusal of stun, and `DamageStatePatch` installs it only when the
   door's state doesn't already allow stun. Keep charge logic out of the damage state.
+- **Mod side.** `About.xml` declares `<ModSide>Both</ModSide>`. Without it SLP guesses
+  "Potentially clientside" (nothing in the plugin looks like server logic to it), but the host
+  runs the accumulator and clients share its timings. `OpenSeconds` is read through
+  `Settings.OpenSecondsClamped`, never `.Value`, since 0 skips the animation and a negative
+  number would run it backwards.
 - **Threads.** Power is computed off the main thread in places, so `BlastDoorApi` readers only
   read values the main-thread tick cached. Keep it that way.
 - **Checked in game (Erica).** The colliders follow the animation; a close during recharge
