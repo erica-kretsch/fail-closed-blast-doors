@@ -33,12 +33,19 @@ The accumulator holds stored energy `c` from 0 (empty) to 1 (full). A door open 
 
 ## Limits worth knowing
 
-- **Multiplayer.** The accumulator lives on the host. Clients see the slow open (the animation
-  patch runs everywhere) but not the recharge colour, and `Error` and `Setting` reach them
-  through the game's own sync.
-- **Saves.** The charge is not saved. On load an open, powered door counts as armed and an
-  open, unpowered one as empty. Vanilla saves `Setting = 0` for open doors, so the mod sets
-  `Setting` to match each door's state on load; a pending close does not survive a reload.
+- **Where the charge is kept.** A door that is open and still stores its recharge deficit as
+  **stun** damage on its own damage state, which the game saves and syncs. Stun above zero
+  means "recharging", and it doesn't count towards breaking the door. The stock structure
+  damage state refuses stun, so a door without a stun-capable state is given one that only
+  adds that permission; a state that already allows stun, from another mod or a later game
+  version, is used as it is.
+- **Multiplayer.** The host runs the accumulator. Clients take the recharge state from the
+  synced stun and animation, so they see the recharge colour and `BlastDoorApi` state too.
+  `Error` and `Setting` reach them through the game's own sync.
+- **Saves.** An open door keeps its charge across a reload through its stun. A door saved
+  before this mod, or while moving, counts as armed if powered and empty if not. Vanilla
+  saves `Setting = 0` for open doors, so the mod sets `Setting` to match each door's state on
+  load; a pending close does not survive a reload.
 - **Status light.** The lights and the emissive panel both take the recharge colour. The
   panel's material changer only swaps between vanilla's presets, so the mod tints a copy of
   the "active" material instead; the next vanilla colour change replaces it.

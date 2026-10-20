@@ -47,6 +47,11 @@ Assisted-by: AGENT_NAME:MODEL_VERSION [TOOL1] [TOOL2]
   `InteractOpen.State` instead.
 - **The animation is symmetric.** One `time` serves both directions, so the slow open is done
   by setting `time` in a prefix on `RefreshState` just before each animation starts.
+- **Stun is the saved charge.** `BlastDoorTracker.SyncStun` writes the recharge deficit as
+  stun through the generic `Damage` API, and works with any damage state whose
+  `DamageAllowed(Stun)` is true. `StunAllowedDamageState` holds no logic: it only lifts
+  `ThingDamageState`'s refusal of stun, and `DamageStatePatch` installs it only when the
+  door's state doesn't already allow stun. Keep charge logic out of the damage state.
 - **Threads.** Power is computed off the main thread in places, so `BlastDoorApi` readers only
   read values the main-thread tick cached. Keep it that way.
 - **Checked in game (Erica).** The colliders follow the animation; a close during recharge
@@ -55,10 +60,13 @@ Assisted-by: AGENT_NAME:MODEL_VERSION [TOOL1] [TOOL2]
   the panel; the crowbar opens and closes an unpowered door, is refused while powered, and
   affects only the door it is used on; `Error` reads 1 when a close is refused during
   recharge and returns to 0 when the door starts to close; `Idle` stays 0 while it moves.
-- **Not verified in game yet.** An open door across a save and reload; the prefab's real
-  `time`; whether the blast door has an error state (`HasErrorState`), which decides whether
-  `Error` comes from the game's setter or from our logic patches; and what turns `Setting`
-  into movement in the keypad's Logic mode, which blast doors don't have.
+  An open door keeps its recharge state across a save and reload (through its stun), and the
+  stun is not shown in any in-game label.
+- **Not verified in game yet.** What a client sees (the recharge colour and state from the
+  synced stun); the prefab's real `time`; whether the blast door has an error state
+  (`HasErrorState`), which decides whether `Error` comes from the game's setter or from our
+  logic patches; and what turns `Setting` into movement in the keypad's Logic mode, which
+  blast doors don't have.
 - **CI.** `.github/workflows/deploy.yml` downloads the dedicated server's DLLs with
   steamcmd, builds against them, and on a `v*` tag attaches a zip of the DLL and `About/` to a
   GitHub release. The layout follows the modding Discord's pinned

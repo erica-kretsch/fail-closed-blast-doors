@@ -49,9 +49,16 @@ namespace FailClosedBlastDoors
             try
             {
                 BlastDoorTracker.Prune();
-                if (GameManager.RunSimulation && GameManager.GameState == GameState.Running)
+                if (GameManager.GameState == GameState.Running)
                 {
-                    BlastDoorTracker.Tick(Time.deltaTime);
+                    if (GameManager.RunSimulation)
+                    {
+                        BlastDoorTracker.Tick(Time.deltaTime);
+                    }
+                    else
+                    {
+                        BlastDoorTracker.TickClient();
+                    }
                 }
             }
             catch (Exception ex)

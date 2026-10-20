@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
+using Assets.Scripts;
 using Assets.Scripts.Objects;
 using Assets.Scripts.Objects.Structures;
 using UnityEngine;
@@ -58,6 +59,10 @@ namespace FailClosedBlastDoors
         // How close the charge must be to the open fraction to count as enough (float error).
         public const float Epsilon = 0.001f;
 
+        // The smallest change of the stun value, as a share of the damage state's maximum, that
+        // is written while recharging.
+        private const float StunStep = 0.02f;
+
         private static readonly ConcurrentDictionary<Door, DoorData> Doors =
             new ConcurrentDictionary<Door, DoorData>();
 
@@ -79,6 +84,63 @@ namespace FailClosedBlastDoors
             return open != null ? open.State == 1 : door.IsOpen;
         }
 
+        // Any damage state that allows stun will do, ours or another mod's. The recharge
+        // deficit is kept there because the game saves and syncs it, so a door keeps its charge
+        // across a reload and clients can see it.
+        public static bool AcceptsStun(IndestructableDamageState state)
+        {
+            return state != null && state.DamageAllowed(DamageUpdateType.Stun);
+        }
+
+        private static IndestructableDamageState StunState(Door door)
+        {
+            var state = door.DamageState;
+            return AcceptsStun(state) ? state : null;
+        }
+
+        // The stored stun as a share of the state's maximum, 0 when the door has none.
+        private static float StunFraction(Door door)
+        {
+            var state = StunState(door);
+            if (state == null || state.MaxDamage <= 0f)
+            {
+                return 0f;
+            }
+            return Mathf.Clamp01(state.GetDamageValue(DamageUpdateType.Stun).Value / state.MaxDamage);
+        }
+
+        // The host holds the charge. A client has only the stun the host synced, which reads as
+        // "armed" when the door has nowhere to keep it.
+        public static float EffectiveCharge(DoorData data)
+        {
+            if (GameManager.RunSimulation)
+            {
+                return data.Charge;
+            }
+            return StunState(data.Door) == null ? 1f : 1f - StunFraction(data.Door);
+        }
+
+        // The stun is the deficit while the door sits open and not full, so stun above zero is
+        // exactly "recharging". It is written in steps to keep network updates down.
+        private static void SyncStun(DoorData data, bool open, BinaryAnimState motion, float charge)
+        {
+            var state = StunState(data.Door);
+            if (state == null || state.MaxDamage <= 0f)
+            {
+                return;
+            }
+            var target = open && motion == BinaryAnimState.On
+                ? (1f - Mathf.Clamp01(charge)) * state.MaxDamage
+                : 0f;
+            var current = state.GetDamageValue(DamageUpdateType.Stun).Value;
+            var endpoint = target <= 0f || target >= state.MaxDamage;
+            if (target != current
+                && (endpoint || Mathf.Abs(target - current) >= StunStep * state.MaxDamage))
+            {
+                state.Damage(ChangeDamageType.Set, target, DamageUpdateType.Stun);
+            }
+        }
+
         public static BlastDoorState Compute(DoorData data)
         {
             var door = data.Door;
@@ -92,7 +154,7 @@ namespace FailClosedBlastDoors
             {
                 return BlastDoorState.Closing;
             }
-            if (door.Powered && IsOpenNow(door) && data.Charge < 1f - Epsilon)
+            if (door.Powered && IsOpenNow(door) && EffectiveCharge(data) < 1f - Epsilon)
             {
                 return BlastDoorState.Recharging;
             }
@@ -140,7 +202,25 @@ namespace FailClosedBlastDoors
             }
         }
 
-        // Clients have the data too (the animation patch makes it) but never run it.
+        // Clients have the door data too (the animation patch makes it) but never run the
+        // accumulator. They take the state from what the host synced: the animation and the stun.
+        public static void TickClient()
+        {
+            foreach (var pair in Doors)
+            {
+                var door = pair.Key;
+                var anim = door != null ? door.doorAnimComponent : null;
+                if (anim == null)
+                {
+                    continue;
+                }
+                var data = pair.Value;
+                data.OpenFraction = anim.t;
+                data.Charge = EffectiveCharge(data);
+                UpdateState(data);
+            }
+        }
+
         public static void Prune()
         {
             foreach (var door in Doors.Keys)
@@ -167,13 +247,22 @@ namespace FailClosedBlastDoors
 
             if (!data.Initialised)
             {
-                // A door loaded open and powered is taken to be armed. One loaded open without
-                // power was opened by hand, or could not close, so it starts empty. Vanilla
-                // saves hold Setting 0 for open doors, so a pending close is lost on load.
+                // The saved stun is the recharge deficit of a door that was open and still, so
+                // such a door gets its charge back. With no stun state to read, an open powered
+                // door is taken as armed and an unpowered one, opened by hand, as empty.
+                // Vanilla saves hold Setting 0 for open doors, so a pending close is lost on
+                // load.
                 data.Initialised = true;
                 data.PrevT = t;
                 data.PrevPowered = powered;
-                data.Charge = powered ? t : 0f;
+                if (open && t >= 1f && StunState(door) != null)
+                {
+                    data.Charge = 1f - StunFraction(door);
+                }
+                else
+                {
+                    data.Charge = powered ? t : 0f;
+                }
                 door.Setting = open ? 1 : 0;
             }
 
@@ -228,20 +317,28 @@ namespace FailClosedBlastDoors
                 SetError(data, false);
             }
 
+            SyncStun(data, open, motion, charge);
+            UpdateState(data);
+        }
+
+        private static void UpdateState(DoorData data)
+        {
+            var door = data.Door;
             var old = data.State;
             var now = Compute(data);
-            if (now != old)
+            if (now == old)
             {
-                data.State = now;
-                // The status light's colour depends on Recharging; nudge it when that changes.
-                if ((old == BlastDoorState.Recharging || now == BlastDoorState.Recharging)
-                    && (now == BlastDoorState.Recharging || now == BlastDoorState.Standby))
-                {
-                    door.ToggleStatusLight(
-                        powered, door.IsLocked ? Door.StatusLightsLock : Door.StatusLightsUnlock);
-                }
-                BlastDoorApi.RaiseStateChanged(door, old, now);
+                return;
             }
+            data.State = now;
+            // The status light's colour depends on Recharging; nudge it when that changes.
+            if ((old == BlastDoorState.Recharging || now == BlastDoorState.Recharging)
+                && (now == BlastDoorState.Recharging || now == BlastDoorState.Standby))
+            {
+                door.ToggleStatusLight(
+                    door.Powered, door.IsLocked ? Door.StatusLightsLock : Door.StatusLightsUnlock);
+            }
+            BlastDoorApi.RaiseStateChanged(door, old, now);
         }
     }
 }
