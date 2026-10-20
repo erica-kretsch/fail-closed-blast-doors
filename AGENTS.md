@@ -36,8 +36,8 @@ Assisted-by: AGENT_NAME:MODEL_VERSION [TOOL1] [TOOL2]
 - **Private game members.** `Main.csproj` publicizes `Assembly-CSharp`, so the code names
   private members directly: `Door.doorAnimComponent`, `BinaryAnimComponent.t`,
   `InteractableAnimComponent.time`. After a game update, check those first.
-- **The decompiled source** is outside this repo, at
-  `C:\Users\erica\Source\Decompilation\Stationeers\Assembly-CSharp`. Search it rather than
+- **The decompiled source** is not in this repo. Decompile the game's `Assembly-CSharp.dll`
+  (for example with dotPeek) somewhere outside it, and search that output rather than
   guessing paths. The classes that matter: `Door.cs` and `Airlock.cs` (under
   `Assets\Scripts\Objects\Structures\`), and, at the root of the decompile,
   `InteractableAnimComponent.cs`, `BinaryAnimComponent.cs`, `DoorAnimComponent.cs`.
@@ -49,10 +49,16 @@ Assisted-by: AGENT_NAME:MODEL_VERSION [TOOL1] [TOOL2]
   by setting `time` in a prefix on `RefreshState` just before each animation starts.
 - **Threads.** Power is computed off the main thread in places, so `BlastDoorApi` readers only
   read values the main-thread tick cached. Keep it that way.
-- **Not verified in game yet.** Written against the decompile and compiled, but not run: the
-  prefab's real `time`, whether it has an error state (`HasErrorState`), whether its colliders
-  follow the animation, and what turns `Setting` into movement in the keypad's Logic mode.
-  The first in-game run should log those.
+- **Checked in game (Erica).** The colliders follow the animation; a close during recharge
+  waits and then runs; a close while charged runs at once; a door reopens after a requested
+  close; power loss closes; power loss mid-open reverses cleanly; the recharge colour shows on
+  the panel; the crowbar opens and closes an unpowered door, is refused while powered, and
+  affects only the door it is used on; `Error` reads 1 when a close is refused during
+  recharge and returns to 0 when the door starts to close; `Idle` stays 0 while it moves.
+- **Not verified in game yet.** An open door across a save and reload; the prefab's real
+  `time`; whether the blast door has an error state (`HasErrorState`), which decides whether
+  `Error` comes from the game's setter or from our logic patches; and what turns `Setting`
+  into movement in the keypad's Logic mode, which blast doors don't have.
 - **CI.** `.github/workflows/deploy.yml` downloads the dedicated server's DLLs with
   steamcmd, builds against them, and on a `v*` tag attaches a zip of the DLL and `About/` to a
   GitHub release. The layout follows the modding Discord's pinned

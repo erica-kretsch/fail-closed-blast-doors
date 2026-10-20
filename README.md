@@ -39,8 +39,9 @@ The accumulator holds stored energy `c` from 0 (empty) to 1 (full). A door open 
 - **Saves.** The charge is not saved. On load an open, powered door counts as armed and an
   open, unpowered one as empty. Vanilla saves `Setting = 0` for open doors, so the mod sets
   `Setting` to match each door's state on load; a pending close does not survive a reload.
-- **Status light.** Only the lights change colour. The emissive panel's material changer only
-  knows vanilla's colours and shows its plain "powered" look.
+- **Status light.** The lights and the emissive panel both take the recharge colour. The
+  panel's material changer only swaps between vanilla's presets, so the mod tints a copy of
+  the "active" material instead; the next vanilla colour change replaces it.
 - **Close hazards.** The close is as fast as vanilla and the door has no obstruction check of
   its own, so anything in the doorway when power drops is caught by the closing colliders.
 

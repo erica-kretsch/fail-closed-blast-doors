@@ -38,6 +38,14 @@ namespace FailClosedBlastDoors.Patches
             BlastDoorTracker.Get(door);
             var original = OriginalTimes.GetValue(__instance, a => new StrongBox<float>(a.time));
             var opening = __instance.InteractableState == 1;
+            // RefreshState also runs for changes that start no animation, such as power
+            // dropping mid-open. An open already under way keeps the speed it began at;
+            // re-deciding it would snap the rest of a slow open to vanilla speed.
+            if (opening && __instance is BinaryAnimComponent binary
+                && binary.CurrentState == BinaryAnimState.OffToOn)
+            {
+                return;
+            }
             __instance.time = opening && door.Powered ? Settings.OpenSeconds.Value : original.Value;
         }
     }
